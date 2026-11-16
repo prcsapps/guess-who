@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Guess Who?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: one narrow phone column. Header with tabs, then the game (polaroid frame + typed answer) or the people list. A crop editor opens as a sheet with three level buttons that double as live previews. */
+:root{
+  --bg:#EFF2F8; --surface:#FFFFFF; --surface2:#E3E8F2; --ink:#171B2C; --muted:#5F667F; --line:#D5DBE9;
+  --accent:#2B55F5; --accent-ink:#FFFFFF; --flash:#FFC93C; --flash-ink:#3A2C00;
+  --good:#1B7F51; --good-bg:#DDF3E8; --bad:#C23030; --bad-bg:#FBE1E1;
+  --shadow:0 1px 2px rgba(23,27,44,.08),0 10px 28px rgba(23,27,44,.10);
+  --font-display:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1120; --surface:#171B2E; --surface2:#222741; --ink:#ECEFFA; --muted:#9AA2BF; --line:#2D3352;
+    --accent:#7F9BFF; --accent-ink:#0E1120; --flash:#FFD05A; --flash-ink:#3A2C00;
+    --good:#4CCB8D; --good-bg:#153A2A; --bad:#FF8080; --bad-bg:#432024;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1120; --surface:#171B2E; --surface2:#222741; --ink:#ECEFFA; --muted:#9AA2BF; --line:#2D3352;
+  --accent:#7F9BFF; --accent-ink:#0E1120; --flash:#FFD05A; --flash-ink:#3A2C00;
+  --good:#4CCB8D; --good-bg:#153A2A; --bad:#FF8080; --bad-bg:#432024;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font:16px/1.45 var(--font-body);
+  padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;
+}
+.app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;flex-direction:column;gap:14px}
+h1{font:700 2rem/1 var(--font-display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 small{display:block;font:400 .9rem/1.3 var(--font-body);color:var(--muted);letter-spacing:0;margin-top:6px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border-radius:14px;padding:4px;gap:4px}
+.tab{border:0;background:transparent;padding:10px 12px;border-radius:10px;font-weight:700;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border-radius:14px;padding:10px 12px;min-width:0}
+.stat b{display:block;font:700 1.5rem/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+.polaroid{background:var(--surface);border-radius:8px;padding:12px 12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.frame{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface2);border-radius:4px;overflow:hidden}
+.frame img,.frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.frame img{object-fit:contain}
+.frame canvas{transition:opacity .6s ease}
+.frame canvas.gone{opacity:0}
+.badge{position:absolute;left:10px;top:10px;background:var(--flash);color:var(--flash-ink);font:700 .78rem/1 var(--font-body);padding:6px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
+.caption{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.caption h2{margin:0;font:700 1.35rem/1.15 var(--font-display);text-wrap:balance;min-width:0}
+.ghost{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem;white-space:nowrap}
+.ghost:disabled{opacity:.45;cursor:default}
+
+.guess{display:flex;flex-direction:column;gap:10px}
+.guessrow{display:flex;gap:8px}
+.guessrow input{flex:1}
+.guessrow .primary{width:auto;padding-inline:22px}
+.guess.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.linkbtn{border:0;background:transparent;color:var(--muted);text-decoration:underline;text-underline-offset:3px;padding:6px;font-size:.9rem;align-self:center}
+
+.feedback{min-height:1.5em;font-weight:700;text-align:center}
+.feedback.good{color:var(--good)} .feedback.bad{color:var(--bad)}
+.primary{border:0;background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:14px 18px;font-weight:700;width:100%}
+.primary:disabled{opacity:.5;cursor:default}
+
+.card{background:var(--surface);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.card h2{margin:0;font:700 1.2rem/1.2 var(--font-display)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+input[type=text]{border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;width:100%;min-width:0;font-size:1rem}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.pick{display:flex;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--line);border-radius:12px;padding:14px;font-weight:700;color:var(--accent);cursor:pointer;text-align:center;position:relative}
+.pick input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.pick:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.thumb{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background-color:var(--surface2);background-repeat:no-repeat}
+.thumb .x{position:absolute;right:4px;top:4px;min-width:28px;height:28px;border:0;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font-weight:700;font-size:.8rem;padding:0 8px;line-height:1}
+.thumb .x.armed{background:var(--bad)}
+.thumb .crop{position:absolute;left:4px;bottom:4px;border:0;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font-weight:700;font-size:.75rem;padding:6px 10px;line-height:1}
+.thumb .tag{position:absolute;left:4px;top:4px;border-radius:999px;background:var(--flash);color:var(--flash-ink);font-weight:700;font-size:.68rem;padding:4px 7px;line-height:1}
+.msg{margin:0;font-size:.9rem;min-height:1.3em;color:var(--muted)}
+.msg.err{color:var(--bad)}
+.note{margin:0;font-size:.85rem;color:var(--muted)}
+
+.people{display:flex;flex-direction:column;gap:10px;padding:0;margin:0;list-style:none}
+.person{background:var(--surface);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.prow{display:flex;align-items:center;gap:12px}
+.avatar{width:48px;height:48px;border-radius:50%;flex:none;background-color:var(--surface2);background-repeat:no-repeat}
+.pname{flex:1;min-width:0}
+.pname b{display:block;overflow-wrap:anywhere}
+.pname span{font-size:.85rem;color:var(--muted)}
+.pactions{display:flex;flex-wrap:wrap;gap:8px}
+.pactions .ghost{padding:7px 12px}
+.ghost.armed{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
+.addmore{position:relative;cursor:pointer;display:inline-flex;align-items:center}
+.addmore input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.addmore:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+
+.empty{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;padding:28px 18px}
+.empty h2{margin:0;font:700 1.4rem/1.2 var(--font-display);text-wrap:balance}
+.empty p{margin:0;color:var(--muted);max-width:34ch}
+.empty .primary{width:auto}
+.privacy{font-size:.82rem;color:var(--muted);text-align:center;margin:0}
+
+.dialog{position:fixed;inset:0;z-index:50;background:rgba(8,10,20,.72);display:flex;align-items:center;justify-content:center;overflow-y:auto;
+  padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet{background:var(--surface);border-radius:16px;padding:16px;width:min(460px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.sheet h2{margin:0;font:700 1.2rem/1.2 var(--font-display)}
+.stage{position:relative;margin:0 auto;touch-action:none;overflow:hidden;border-radius:8px;background:var(--surface2);user-select:none;-webkit-user-select:none}
+.stage img{display:block;width:100%;height:auto;pointer-events:none}
+.cb{position:absolute;border:2px dashed rgba(255,255,255,.9);border-radius:6px;pointer-events:none;z-index:2}
+.cb span{position:absolute;left:3px;top:3px;background:rgba(0,0,0,.65);color:#fff;font:700 .7rem/1 var(--font-body);padding:3px 5px;border-radius:999px}
+.cb.active{border:2px solid #fff;z-index:1;box-shadow:0 0 0 999px rgba(0,0,0,.58)}
+.lvls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lvl{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.lvl canvas{width:100%;height:auto;aspect-ratio:1/1;border-radius:6px;background:var(--surface2);display:block}
+.lvl b{font-size:.85rem;line-height:1.1}
+.lvl small{font-size:.72rem;color:var(--muted);line-height:1.1}
+.lvl[aria-pressed="true"]{border-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.row .primary{width:auto;padding-block:10px}
+
+@media (prefers-reduced-motion: reduce){ .frame canvas{transition:none} .guess.shake{animation:none} }
+</style>
+
+<main class="app">
+  <header>
+    <h1>Guess Who?<small>Three crops per photo. Reveal them one by one.</small></h1>
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" id="tabPlay" role="tab" aria-selected="true" aria-controls="play">Play</button>
+      <button class="tab" id="tabPeople" role="tab" aria-selected="false" aria-controls="people">People <span id="peopleCount"></span></button>
+    </div>
+  </header>
+
+  <section id="play" role="tabpanel" aria-labelledby="tabPlay">
+    <div id="playEmpty" class="card empty" hidden>
+      <h2 id="emptyTitle">Add someone to start</h2>
+      <p id="emptyText">Upload photos, then crop three levels on each one.</p>
+      <button class="primary" id="goPeople" type="button">Go to People</button>
+    </div>
+
+    <div id="playGame" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="stats">
+        <div class="stat"><b id="sScore">0</b><span>Score</span></div>
+        <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
+        <div class="stat"><b id="sBest">0</b><span>Best streak</span></div>
+      </div>
+      <div class="polaroid">
+        <div class="frame" id="frame">
+          <img id="fullImg" alt="" />
+          <canvas id="cropCanvas" width="720" height="720" role="img" aria-label="Cropped part of a photo"></canvas>
+          <span class="badge" id="badge">Level 1 of 3</span>
+        </div>
+        <div class="caption">
+          <h2 id="question">Who is this?</h2>
+          <button class="ghost" id="hintBtn" type="button">Next level</button>
+        </div>
+      </div>
+      <form class="guess" id="guessForm" autocomplete="off">
+        <div class="guessrow">
+          <input type="text" id="guessInput" placeholder="Type their name" aria-label="Your answer" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="60">
+          <button class="primary" type="submit">Check</button>
+        </div>
+        <button class="linkbtn" id="revealBtn" type="button">Give up and show the answer</button>
+      </form>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <button class="primary" id="nextBtn" type="button" hidden>Next photo</button>
+    </div>
+  </section>
+
+  <section id="people" role="tabpanel" aria-labelledby="tabPeople" hidden style="display:flex;flex-direction:column;gap:16px">
+    <form class="card" id="addForm" autocomplete="off">
+      <h2>Add someone</h2>
+      <div class="field">
+        <label for="nameInput">Name</label>
+        <input type="text" id="nameInput" placeholder="e.g. Ate Jen, Lolo Ben" maxlength="40">
+      </div>
+      <div class="field">
+        <label for="fileInput">Photos</label>
+        <label class="pick" for="fileInput">
+          <span>Choose photos from your phone</span>
+          <input type="file" id="fileInput" accept="image/*" multiple>
+        </label>
+      </div>
+      <div class="thumbs" id="pending"></div>
+      <p class="note" id="cropNote" hidden>Tap Crop on each photo to set its three levels. Photos without crops are skipped in the game.</p>
+      <p class="msg" id="formMsg" aria-live="polite"></p>
+      <button class="primary" type="submit" id="saveBtn">Save person</button>
+    </form>
+
+    <ul class="people" id="peopleList"></ul>
+    <p class="privacy" id="privacy">Photos stay on this device. Clearing your browser data erases them.</p>
+  </section>
+</main>
+
+<div class="dialog" id="editor" role="dialog" aria-modal="true" aria-labelledby="edTitle" hidden>
+  <div class="sheet">
+    <h2 id="edTitle">Crop three levels</h2>
+    <p class="note">Pick a level, then drag the box and resize it. Level 1 is what the audience sees first, level 3 is the widest.</p>
+    <div class="stage" id="stage">
+      <img id="edImg" alt="Photo being cropped">
+      <div class="cb" data-level="0"><span>1</span></div>
+      <div class="cb" data-level="1"><span>2</span></div>
+      <div class="cb" data-level="2"><span>3</span></div>
+    </div>
+    <div class="lvls" role="group" aria-label="Level">
+      <button type="button" class="lvl" data-lvl="0" aria-pressed="true"><canvas id="pv0" width="160" height="160"></canvas><b>Level 1</b><small>Hardest</small></button>
+      <button type="button" class="lvl" data-lvl="1" aria-pressed="false"><canvas id="pv1" width="160" height="160"></canvas><b>Level 2</b><small>Medium</small></button>
+      <button type="button" class="lvl" data-lvl="2" aria-pressed="false"><canvas id="pv2" width="160" height="160"></canvas><b>Level 3</b><small>Easiest</small></button>
+    </div>
+    <div class="field">
+      <label for="edSize" id="edSizeLabel">Box size, level 1</label>
+      <input type="range" id="edSize" min="5" max="100" value="20">
+    </div>
+    <div class="row">
+      <button class="ghost" type="button" id="edCancel">Cancel</button>
+      <button class="primary" type="button" id="edDone">Save crops</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var MAX_HINTS = 2;
+
+  var ls = {
+    get: function(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } },
+    set: function(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+  };
+
+  /* ---------- storage (IndexedDB, falls back to memory) ---------- */
+  var db = null;
+  function openDB(){
+    return new Promise(function(res, rej){
+      try {
+        var r = indexedDB.open('sino-ito', 1);
+        r.onupgradeneeded = function(){ r.result.createObjectStore('people', { keyPath: 'id' }); };
+        r.onsuccess = function(){ res(r.result); };
+        r.onerror = function(){ rej(r.error); };
+      } catch(e){ rej(e); }
+    });
+  }
+  function loadAll(){
+    return openDB().then(function(d){
+      db = d;
+      return new Promise(function(res, rej){
+        var q = db.transaction('people').objectStore('people').getAll();
+        q.onsuccess = function(){ res(q.result || []); };
+        q.onerror = function(){ rej(q.error); };
+      });
+    }).catch(function(){ db = null; return []; });
+  }
+  function putPerson(p){ if (!db) return; try { db.transaction('people', 'readwrite').objectStore('people').put(p); } catch(e){} }
+  function delPerson(id){ if (!db) return; try { db.transaction('people', 'readwrite').objectStore('people').delete(id); } catch(e){} }
+
+  /* ---------- helpers ---------- */
+  var people = [];
+  var score = 0, streak = 0, best = parseInt(ls.get('sino-best', '0'), 10) || 0;
+  var round = null, lastKey = null, pending = [], expanded = {}, busy = false;
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function rand(n){ return Math.floor(Math.random() * n); }
+  function clamp(v, a, b){ return Math.min(Math.max(v, a), b); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function plural(n, w){ return n + ' ' + w + (n === 1 ? '' : 's'); }
+
+  /* A photo is { src, w, h, ready, crops:[L1, L2, L3] } and each crop is { cx, cy, s }:
+     cx/cy = crop centre (0-1 of the photo), s = side as a fraction of the photo's shorter edge. */
+  function defaultCrops(cx, cy, s3){
+    return [0.3, 0.6, 1].map(function(k){ return { cx: cx, cy: cy, s: clamp(s3 * k, 0.05, 1) }; });
+  }
+  function cropRect(ph, c){
+    var m = Math.min(ph.w, ph.h), side = clamp(c.s, 0.05, 1) * m;
+    return { side: side, x: clamp(c.cx * ph.w - side / 2, 0, ph.w - side), y: clamp(c.cy * ph.h - side / 2, 0, ph.h - side) };
+  }
+  function drawCropTo(canvas, img, ph, c){
+    var r = cropRect(ph, c), ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, r.x, r.y, r.side, r.side, 0, 0, canvas.width, canvas.height);
+  }
+  function thumbStyle(ph){
+    var r = cropRect(ph, ph.crops[2]);
+    var px = ph.w - r.side > 0.5 ? r.x / (ph.w - r.side) * 100 : 0;
+    var py = ph.h - r.side > 0.5 ? r.y / (ph.h - r.side) * 100 : 0;
+    return 'background-image:url(' + ph.src + ');background-size:' + (ph.w / r.side * 100) + '% ' + (ph.h / r.side * 100) + '%;background-position:' + px + '% ' + py + '%';
+  }
+  function loadImg(src){
+    return new Promise(function(res, rej){ var im = new Image(); im.onload = function(){ res(im); }; im.onerror = rej; im.src = src; });
+  }
+
+  /* ---------- photo processing ---------- */
+  function fileToPhoto(file, max){
+    return new Promise(function(res, rej){
+      function finish(src, w, h){
+        var s = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+        c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+        res({ src: c.toDataURL('image/jpeg', 0.82), w: c.width, h: c.height, ready: false, crops: defaultCrops(0.5, 0.4, 0.6) });
+      }
+      function viaImage(){
+        var url = URL.createObjectURL(file), im = new Image();
+        im.onload = function(){ finish(im, im.naturalWidth, im.naturalHeight); URL.revokeObjectURL(url); };
+        im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('bad image')); };
+        im.src = url;
+      }
+      if (window.createImageBitmap){
+        createImageBitmap(file, { imageOrientation: 'from-image' })
+          .then(function(b){ finish(b, b.width, b.height); })
+          .catch(viaImage);
+      } else viaImage();
+    });
+  }
+
+  /* ---------- tabs ---------- */
+  function setTab(t){
+    var play = t === 'play';
+    $('#tabPlay').setAttribute('aria-selected', play);
+    $('#tabPeople').setAttribute('aria-selected', !play);
+    $('#play').hidden = !play;
+    $('#people').hidden = play;
+    if (play) startRound();
+  }
+  $('#tabPlay').onclick = function(){ setTab('play'); };
+  $('#tabPeople').onclick = function(){ setTab('people'); };
+  $('#goPeople').onclick = function(){ setTab('people'); };
+
+  /* ---------- crop editor ---------- */
+  var ed = null;
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.cb'));
+  var lvlBtns = Array.prototype.slice.call(document.querySelectorAll('.lvl'));
+  var LEVEL_NAMES = ['level 1', 'level 2', 'level 3'];
+
+  function drawPreviews(){
+    if (!ed || !ed.img) return;
+    ed.crops.forEach(function(c, i){ drawCropTo($('#pv' + i), ed.img, ed, c); });
+  }
+  function layoutBoxes(){
+    var m = Math.min(ed.w, ed.h);
+    ed.crops.forEach(function(c, i){
+      var side = c.s * m, hw = side / ed.w / 2, hh = side / ed.h / 2;
+      c.cx = clamp(c.cx, hw, 1 - hw); c.cy = clamp(c.cy, hh, 1 - hh);
+      var b = boxes[i];
+      b.style.left = (c.cx - hw) * 100 + '%'; b.style.top = (c.cy - hh) * 100 + '%';
+      b.style.width = hw * 200 + '%'; b.style.height = hh * 200 + '%';
+      b.classList.toggle('active', i === ed.level);
+    });
+    lvlBtns.forEach(function(b, i){ b.setAttribute('aria-pressed', i === ed.level); });
+    $('#edSize').value = Math.round(ed.crops[ed.level].s * 100);
+    $('#edSizeLabel').textContent = 'Box size, ' + LEVEL_NAMES[ed.level];
+    drawPreviews();
+  }
+  function sizeStage(){
+    var st = $('#stage'), avail = $('.sheet').clientWidth - 32;
+    var w = Math.min(avail, window.innerHeight * 0.45 * (ed.w / ed.h));
+    st.style.width = Math.max(120, w) + 'px';
+  }
+  function openEditor(photo, onDone){
+    ed = { photo: photo, onDone: onDone, w: photo.w, h: photo.h, level: 0, img: null,
+           crops: photo.crops.map(function(c){ return { cx: c.cx, cy: c.cy, s: c.s }; }) };
+    $('#edImg').src = photo.src;
+    $('#editor').hidden = false;
+    sizeStage(); layoutBoxes();
+    loadImg(photo.src).then(function(im){ if (ed && ed.photo === photo){ ed.img = im; drawPreviews(); } });
+    $('#edDone').focus({ preventScroll: true });
+  }
+  function closeEditor(){ $('#editor').hidden = true; ed = null; }
+  $('#edCancel').onclick = closeEditor;
+  $('#edDone').onclick = function(){
+    var p = ed.photo;
+    p.crops = ed.crops.map(function(c){ return { cx: c.cx, cy: c.cy, s: c.s }; });
+    p.ready = true;
+    var cb = ed.onDone; closeEditor(); if (cb) cb();
+  };
+  lvlBtns.forEach(function(b, i){ b.onclick = function(){ if (ed){ ed.level = i; layoutBoxes(); } }; });
+  $('#edSize').addEventListener('input', function(e){ if (!ed) return; ed.crops[ed.level].s = clamp(+e.target.value / 100, 0.05, 1); layoutBoxes(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && ed) closeEditor(); });
+  window.addEventListener('resize', function(){ if (ed){ sizeStage(); layoutBoxes(); } });
+
+  (function(){
+    var stage = $('#stage'), drag = null;
+    function pos(e){ var r = stage.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; }
+    stage.addEventListener('pointerdown', function(e){
+      if (!ed) return;
+      var c = ed.crops[ed.level], p = pos(e), side = c.s * Math.min(ed.w, ed.h);
+      var inside = Math.abs(p.x - c.cx) <= side / ed.w / 2 && Math.abs(p.y - c.cy) <= side / ed.h / 2;
+      if (!inside){ c.cx = p.x; c.cy = p.y; layoutBoxes(); }
+      drag = { dx: c.cx - p.x, dy: c.cy - p.y };
+      try { stage.setPointerCapture(e.pointerId); } catch(err){}
+      e.preventDefault();
+    });
+    stage.addEventListener('pointermove', function(e){
+      if (!drag || !ed) return;
+      var c = ed.crops[ed.level], p = pos(e); c.cx = p.x + drag.dx; c.cy = p.y + drag.dy; layoutBoxes();
+    });
+    function end(){ drag = null; }
+    stage.addEventListener('pointerup', end);
+    stage.addEventListener('pointercancel', end);
+  })();
+
+  /* ---------- people tab ---------- */
+  function msg(t, err){ var m = $('#formMsg'); m.textContent = t || ''; m.className = 'msg' + (err ? ' err' : ''); }
+
+  function renderPending(){
+    $('#cropNote').hidden = !pending.length;
+    $('#pending').innerHTML = pending.map(function(p, i){
+      return '<div class="thumb" style="' + thumbStyle(p) + '">' +
+        (p.ready ? '' : '<span class="tag">Needs crop</span>') +
+        '<button type="button" class="x" data-rmpend="' + i + '" aria-label="Remove photo ' + (i + 1) + '">×</button>' +
+        '<button type="button" class="crop" data-croppend="' + i + '">Crop</button></div>';
+    }).join('');
+  }
+
+  function addFiles(files){
+    var list = Array.prototype.slice.call(files || []).filter(function(f){ return /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name); });
+    if (!list.length) return Promise.resolve([]);
+    busy = true; $('#saveBtn').disabled = true; msg('Preparing ' + plural(list.length, 'photo') + '…');
+    return Promise.all(list.map(function(f){ return fileToPhoto(f, 900).catch(function(){ return null; }); })).then(function(r){
+      busy = false; $('#saveBtn').disabled = false;
+      var ok = r.filter(Boolean), skipped = list.length - ok.length;
+      msg(skipped ? skipped + ' photo(s) could not be read and were skipped.' : '', !!skipped);
+      return ok;
+    });
+  }
+
+  $('#fileInput').addEventListener('change', function(e){
+    var input = e.target;
+    addFiles(input.files).then(function(ok){ pending = pending.concat(ok); renderPending(); input.value = ''; });
+  });
+
+  $('#addForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (busy) return;
+    var name = $('#nameInput').value.trim();
+    if (!name){ msg('Type a name first.', true); $('#nameInput').focus(); return; }
+    if (!pending.length){ msg('Choose at least one photo.', true); return; }
+    var existing = people.filter(function(p){ return p.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (existing){ existing.photos = existing.photos.concat(pending); putPerson(existing); expanded[existing.id] = true; }
+    else { var p = { id: uid(), name: name, photos: pending.slice() }; people.push(p); putPerson(p); expanded[p.id] = true; }
+    var added = pending.length, todo = pending.filter(function(x){ return !x.ready; }).length;
+    pending = []; renderPending(); $('#nameInput').value = '';
+    msg((existing ? 'Added ' + plural(added, 'photo') + ' to ' + existing.name + '.' : 'Saved ' + name + '.') + (todo ? ' Tap Crop on ' + (todo === 1 ? 'the new photo' : 'each new photo') + ' to set its levels.' : ''));
+    renderPeople();
+  });
+
+  function renderPeople(){
+    $('#peopleCount').textContent = people.length ? '(' + people.length + ')' : '';
+    $('#peopleList').innerHTML = people.map(function(p){
+      var open = !!expanded[p.id];
+      var ready = p.photos.filter(function(x){ return x.ready; }).length;
+      var thumbs = open ? '<div class="thumbs">' + p.photos.map(function(ph, i){
+        return '<div class="thumb" style="' + thumbStyle(ph) + '" role="img" aria-label="' + esc(p.name) + ' photo ' + (i + 1) + '">' +
+          (ph.ready ? '' : '<span class="tag">Needs crop</span>') +
+          '<button type="button" class="x" data-delphoto="' + p.id + ':' + i + '" data-label="×" aria-label="Delete photo ' + (i + 1) + '">×</button>' +
+          '<button type="button" class="crop" data-cropphoto="' + p.id + ':' + i + '">Crop</button></div>';
+      }).join('') + '</div>' : '';
+      return '<li class="person"><div class="prow">' +
+        '<div class="avatar" style="' + thumbStyle(p.photos[0]) + '"></div>' +
+        '<div class="pname"><b>' + esc(p.name) + '</b><span>' + plural(p.photos.length, 'photo') + (ready < p.photos.length ? ' · ' + ready + ' ready' : '') + '</span></div></div>' +
+        '<div class="pactions">' +
+          '<button class="ghost" type="button" data-toggle="' + p.id + '" aria-expanded="' + open + '">' + (open ? 'Hide photos' : 'Show photos') + '</button>' +
+          '<label class="ghost addmore">Add photos<input type="file" accept="image/*" multiple data-addto="' + p.id + '"></label>' +
+          '<button class="ghost" type="button" data-delperson="' + p.id + '" data-label="Delete">Delete</button>' +
+        '</div>' + thumbs + '</li>';
+    }).join('');
+  }
+
+  var armTimer = null;
+  function arm(btn, go){
+    if (btn.dataset.armed){ go(); return; }
+    var orig = btn.dataset.label || btn.textContent;
+    btn.dataset.armed = '1'; btn.classList.add('armed'); btn.textContent = 'Tap again';
+    clearTimeout(armTimer);
+    armTimer = setTimeout(function(){ btn.textContent = orig; btn.classList.remove('armed'); delete btn.dataset.armed; }, 3000);
+  }
+  function findPhoto(key){
+    var parts = key.split(':'), p = people.filter(function(x){ return x.id === parts[0]; })[0];
+    return p ? { person: p, index: +parts[1], photo: p.photos[+parts[1]] } : null;
+  }
+
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('button');
+    if (!t) return;
+    if (t.dataset.rmpend !== undefined){ pending.splice(+t.dataset.rmpend, 1); renderPending(); return; }
+    if (t.dataset.croppend !== undefined){ var ph = pending[+t.dataset.croppend]; if (ph) openEditor(ph, renderPending); return; }
+    if (t.dataset.cropphoto){
+      var f = findPhoto(t.dataset.cropphoto);
+      if (f) openEditor(f.photo, function(){ putPerson(f.person); renderPeople(); });
+      return;
+    }
+    if (t.dataset.toggle){ expanded[t.dataset.toggle] = !expanded[t.dataset.toggle]; renderPeople(); return; }
+    if (t.dataset.delperson){
+      arm(t, function(){ var id = t.dataset.delperson; people = people.filter(function(p){ return p.id !== id; }); delPerson(id); renderPeople(); });
+      return;
+    }
+    if (t.dataset.delphoto){
+      arm(t, function(){
+        var f = findPhoto(t.dataset.delphoto);
+        if (!f) return;
+        f.person.photos.splice(f.index, 1);
+        if (!f.person.photos.length){ people = people.filter(function(x){ return x.id !== f.person.id; }); delPerson(f.person.id); } else putPerson(f.person);
+        renderPeople();
+      });
+    }
+  });
+
+  document.addEventListener('change', function(e){
+    var inp = e.target;
+    if (!inp.dataset || !inp.dataset.addto) return;
+    var p = people.filter(function(x){ return x.id === inp.dataset.addto; })[0];
+    if (!p) return;
+    addFiles(inp.files).then(function(ok){
+      if (ok.length){ p.photos = p.photos.concat(ok); putPerson(p); expanded[p.id] = true; renderPeople(); }
+      inp.value = '';
+    });
+  });
+
+  /* ---------- answer checking ---------- */
+  function norm(s){
+    return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function lev(a, b){
+    var m = a.length, n = b.length, prev = [], i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++){
+      var cur = [i];
+      for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[n];
+  }
+  function isFull(guess, name){
+    var g = norm(guess), n = norm(name);
+    if (!g || !n) return false;
+    if (g === n || g.replace(/ /g, '') === n.replace(/ /g, '')) return true;
+    return lev(g, n) <= (n.length >= 9 ? 2 : n.length >= 5 ? 1 : 0);
+  }
+  function isPartial(guess, name){
+    var gt = norm(guess).split(' ').filter(Boolean), nt = norm(name).split(' ').filter(Boolean);
+    if (!gt.length) return false;
+    return gt.every(function(t){
+      return nt.some(function(x){ return x === t || (x.length >= 5 && t.length >= 4 && lev(x, t) <= 1); });
+    });
+  }
+
+  /* ---------- game ---------- */
+  function drawLevel(){
+    var r = round;
+    drawCropTo($('#cropCanvas'), r.img, r.photo, r.photo.crops[r.hints]);
+    $('#badge').textContent = 'Level ' + (r.hints + 1) + ' of 3';
+  }
+  function updateStats(){ $('#sScore').textContent = score; $('#sStreak').textContent = streak; $('#sBest').textContent = best; }
+  function updateHint(){
+    var left = MAX_HINTS - round.hints, b = $('#hintBtn');
+    b.disabled = round.done || left <= 0;
+    b.textContent = left > 0 ? 'Next level' : 'Last level';
+  }
+
+  function showEmpty(){
+    var any = people.some(function(p){ return p.photos.length; });
+    $('#emptyTitle').textContent = any ? 'Crop your photos to start' : 'Add someone to start';
+    $('#emptyText').textContent = any ? 'Open a photo in People, tap Crop, and set its three levels. Only cropped photos are played.' : 'Upload photos, then crop three levels on each one.';
+    $('#playEmpty').hidden = false; $('#playGame').hidden = true;
+  }
+
+  function startRound(){
+    var all = [];
+    people.forEach(function(p){ p.photos.forEach(function(ph, i){ if (ph.ready) all.push({ person: p, photo: ph, key: p.id + ':' + i }); }); });
+    if (!all.length){ showEmpty(); return Promise.resolve(); }
+    $('#playEmpty').hidden = true; $('#playGame').hidden = false;
+    updateStats();
+    var pick, tries = 0;
+    do { pick = all[rand(all.length)]; tries++; } while (pick.key === lastKey && all.length > 1 && tries < 20);
+    lastKey = pick.key;
+    return loadImg(pick.photo.src).then(function(im){
+      round = { person: pick.person, photo: pick.photo, img: im, hints: 0, misses: 0, done: false };
+      $('#fullImg').src = pick.photo.src; $('#fullImg').alt = '';
+      $('#cropCanvas').classList.remove('gone');
+      $('#question').textContent = 'Who is this?';
+      drawLevel();
+      $('#guessForm').hidden = false; $('#guessInput').value = ''; $('#guessInput').disabled = false;
+      $('#feedback').textContent = ''; $('#feedback').className = 'feedback';
+      $('#nextBtn').hidden = true;
+      updateHint();
+    }).catch(function(){ lastKey = null; });
+  }
+
+  function finishRound(text, good){
+    round.done = true;
+    $('#cropCanvas').classList.add('gone');
+    $('#fullImg').alt = 'Full photo of ' + round.person.name;
+    $('#badge').textContent = 'Full photo';
+    $('#guessForm').hidden = true;
+    var f = $('#feedback'); f.textContent = text; f.className = 'feedback ' + (good ? 'good' : 'bad');
+    updateStats(); updateHint();
+    $('#nextBtn').hidden = false; $('#nextBtn').focus({ preventScroll: true });
+  }
+
+  $('#hintBtn').onclick = function(){
+    if (!round || round.done || round.hints >= MAX_HINTS) return;
+    round.hints++; drawLevel(); updateHint();
+    $('#guessInput').focus({ preventScroll: true });
+  };
+
+  $('#guessForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!round || round.done) return;
+    var g = $('#guessInput').value;
+    if (!norm(g)){ $('#guessInput').focus(); return; }
+    var name = round.person.name;
+    var full = isFull(g, name);
+    var correct = full;
+    if (!full && isPartial(g, name)){
+      var others = people.filter(function(p){ return p.id !== round.person.id && (isFull(g, p.name) || isPartial(g, p.name)); });
+      if (others.length){
+        var fb = $('#feedback'); fb.textContent = 'Be more specific. More than one person matches that.'; fb.className = 'feedback bad';
+        return;
+      }
+      correct = true;
+    }
+    if (correct){
+      var pts = Math.max(15 - round.hints * 5 - round.misses * 2, 1);
+      score += pts; streak = round.misses ? 0 : streak + 1;
+      if (streak > best){ best = streak; ls.set('sino-best', String(best)); }
+      finishRound('Correct, that’s ' + name + '! +' + pts, true);
+    } else {
+      round.misses++; streak = 0; updateStats();
+      var f = $('#feedback'); f.textContent = 'Not quite. Try again.'; f.className = 'feedback bad';
+      var form = $('#guessForm'); form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+      $('#guessInput').select();
+    }
+  });
+
+  $('#revealBtn').onclick = function(){
+    if (!round || round.done) return;
+    streak = 0;
+    finishRound('That’s ' + round.person.name + '.', false);
+  };
+  $('#nextBtn').onclick = function(){ startRound(); };
+
+  /* ---------- boot ---------- */
+  function normalize(list){
+    var jobs = [], changed = {};
+    list.forEach(function(p){
+      p.photos = (p.photos || []).map(function(ph){
+        var o = typeof ph === 'string' ? { src: ph, w: 0, h: 0 } : ph;
+        if (typeof ph === 'string') changed[p.id] = true;
+        if (!o.crops || o.crops.length !== 3){
+          /* Photos from earlier versions: start from their old face box, but ask the user to confirm the levels. */
+          o.crops = defaultCrops(typeof o.cx === 'number' ? o.cx : 0.5, typeof o.cy === 'number' ? o.cy : 0.4, typeof o.s === 'number' ? o.s : 0.6);
+          o.ready = false; changed[p.id] = true;
+        }
+        o.ready = !!o.ready;
+        return o;
+      });
+      p.photos.forEach(function(ph){
+        if (!ph.w || !ph.h){
+          changed[p.id] = true;
+          jobs.push(loadImg(ph.src).then(function(im){ ph.w = im.naturalWidth; ph.h = im.naturalHeight; }).catch(function(){}));
+        }
+      });
+    });
+    return Promise.all(jobs).then(function(){
+      list.forEach(function(p){ if (changed[p.id]) putPerson(p); });
+      return list;
+    });
+  }
+
+  loadAll().then(function(list){
+    list = list.filter(function(p){ return p && p.name && p.photos && p.photos.length; });
+    return normalize(list);
+  }).then(function(list){
+    people = list.filter(function(p){ return p.photos.every(function(ph){ return ph.w && ph.h; }); });
+    if (!db) $('#privacy').textContent = 'This browser is blocking storage, so photos last only while this page stays open.';
+    renderPeople(); renderPending(); updateStats();
+    startRound();
+  });
+})();
+</script>
+
+</body>
+</html>
