@@ -113,7 +113,7 @@ body.stage #nextBtn,body.stage #againBtn{background:#fff;color:#2B1B6B;box-shado
 .kpts b{width:88px;aspect-ratio:1/1;border-radius:50%;background:#FFC93C;color:#3A2C00;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 1.9rem/1 var(--font-display);font-variant-numeric:tabular-nums}
 .kpts small{font:500 .65rem/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase}
 .kpts em{font-style:normal;font-size:.8rem;color:rgba(255,255,255,.85)}
-.frame{grid-area:p;justify-self:center;position:relative;aspect-ratio:1/1;width:min(100%,max(200px,calc(100vh - 400px - 2 * var(--tile))));background:#1F1252;border:6px solid #fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 0 rgba(0,0,0,.22)}
+.frame{grid-area:p;justify-self:center;position:relative;aspect-ratio:1/1;width:min(100%,max(200px,calc(100vh - 400px - var(--optH) - var(--boardH,0px))));background:#1F1252;border:6px solid #fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 0 rgba(0,0,0,.22)}
 .frame img,.frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .frame img{object-fit:contain}
 .frame canvas{transition:opacity .6s ease}
@@ -125,6 +125,7 @@ body.stage #nextBtn,body.stage #againBtn{background:#fff;color:#2B1B6B;box-shado
   .kring,.kpts b{width:64px}
   .kring span,.kpts b{font-size:1.4rem}
   .frame{width:min(100%,max(200px,calc(100vh - 470px)))}
+  .options{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 .feedback{font:700 1.2rem/1.2 var(--font-display);text-align:center;border-radius:10px;padding:12px 16px}
@@ -132,8 +133,8 @@ body.stage #nextBtn,body.stage #againBtn{background:#fff;color:#2B1B6B;box-shado
 .feedback.good{background:#23863F;color:#fff}
 .feedback.bad{background:#D32F47;color:#fff}
 
-.options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.opt{position:relative;display:flex;align-items:center;gap:12px;min-height:var(--tile);border:0;border-radius:8px;padding:12px 14px;color:#fff;font:700 clamp(1.05rem,2.4vw,1.5rem)/1.15 var(--font-display);text-align:left;min-width:0;box-shadow:0 5px 0 rgba(0,0,0,.28);transition:transform .08s,box-shadow .08s,opacity .2s}
+.options{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:12px}
+.opt{position:relative;display:flex;align-items:center;gap:12px;min-height:var(--tileh);border:0;border-radius:8px;padding:12px 14px;color:#fff;font:700 clamp(1.05rem,2.4vw,1.5rem)/1.15 var(--font-display);text-align:left;min-width:0;box-shadow:0 5px 0 rgba(0,0,0,.28);transition:transform .08s,box-shadow .08s,opacity .2s}
 .opt .shape{flex:none;width:clamp(26px,4vw,40px);height:auto;fill:currentColor}
 .opt span{min-width:0;overflow-wrap:anywhere}
 .opt.c0{background:#D32F47}
@@ -247,7 +248,7 @@ body.present header{display:none}
 body.present .keys{display:none}
 body.present .opt{font-size:clamp(1.3rem,3vw,2rem)}
 body.present{--tile:clamp(60px,10vh,120px);padding-block:12px}
-body.present .frame{width:min(100%,max(200px,calc(100vh - 290px - 2 * var(--tile))))}
+body.present .frame{width:min(100%,max(200px,calc(100vh - 290px - var(--optH) - var(--boardH,0px))))}
 body.present .kq{padding:10px 16px}
 body.present .stack{gap:10px}
 body.present .ctrl .ghost{padding:8px 6px}
@@ -264,6 +265,48 @@ body.large .ctrl .ghost,body.large .primary{font-size:1.15rem}
 body.hc{--muted:var(--ink);--line:var(--ink)}
 body.hc .chip,body.hc .ghost,body.hc .tog,body.hc .seg button,body.hc input[type=text],body.hc select{border-width:2px}
 body.hc .opt{outline:2px solid #fff}
+
+/* many answer choices, online lobby, phone player screen */
+#game{--tileh:var(--tile);--orows:2;--ogap:12px;--optH:calc(var(--orows) * var(--tileh) + (var(--orows) - 1) * var(--ogap))}
+#game.many{--tileh:clamp(40px,5.4vh,60px);--ogap:8px}
+#game.many .options{gap:var(--ogap)}
+body.present #game.many .frame{width:min(100%,max(160px,calc(100vh - 290px - var(--optH) - var(--boardH,0px))))}
+.options.compact .opt{font-size:clamp(.95rem,1.6vw,1.15rem);padding:8px 10px;gap:8px}
+.options.compact .opt .shape{width:22px}
+body.present .options.compact .opt{font-size:clamp(1rem,1.8vw,1.3rem)}
+.opt .cnt{margin-left:auto;font-style:normal;font-size:.8em;background:rgba(0,0,0,.28);border-radius:999px;padding:2px 9px}
+.anscount{text-align:center;font-weight:700;color:rgba(255,255,255,.9)}
+.chip .ord{font-style:normal;background:#FFC93C;color:#3A2C00;border-radius:999px;padding:2px 8px;font-size:.8rem}
+.chip.off{opacity:.45}
+.board.dense{gap:5px}
+.board.dense .chip{padding:3px 4px 3px 10px;gap:5px;font-size:.85rem;border-width:1.5px}
+.board.dense .chip .cn{max-width:9ch}
+.board.dense .chip .cs{padding:1px 7px;font-size:.8rem}
+.board.dense .chip .ord{padding:1px 6px;font-size:.72rem}
+.roomcode{font:700 clamp(2.6rem,10vw,4.5rem)/1 var(--font-display);letter-spacing:.18em;background:#fff;color:#2B1B6B;border-radius:12px;padding:14px 10px 14px 24px;box-shadow:0 5px 0 rgba(0,0,0,.22);user-select:all}
+.linkrow{display:flex;gap:8px}
+.linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.25);border:1.5px solid rgba(255,255,255,.4);color:#fff}
+.kres .chips{justify-content:center}
+.kres .pchip{background:rgba(255,255,255,.16);color:#fff}
+.kres .pchip button{background:rgba(255,255,255,.2);color:#fff}
+.kres .linkrow .ghost{color:#fff;border-color:rgba(255,255,255,.5)}
+body.stage #lobbyStart{background:#23863F;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.25);font-size:1.1rem;border-radius:10px}
+body.player header{display:none}
+body.player #play,body.player #people{display:none!important}
+.pl{display:flex;flex-direction:column;gap:14px;max-width:720px;width:100%;margin-inline:auto}
+.pl .ktop{justify-content:space-between}
+.plhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.plhead>*{grid-area:auto}
+.plhead .kring,.plhead .kpts b{width:60px}
+.plhead .kring span,.plhead .kpts b{font-size:1.3rem}
+.plhead .kpts{justify-self:end}
+.pl .kq{font-size:1.1rem;padding:10px 12px}
+.pl .opt{min-height:56px}
+@media (max-width:560px){.options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.options.compact .opt{font-size:1rem}}
+.pl .opt.picked{box-shadow:0 0 0 4px #fff,0 5px 0 rgba(0,0,0,.28)}
+.pl .opt.picked::after{content:'\2713'}
+.pl .feedback{color:#fff}
+.pl .feedback.good{color:#fff}
 
 @media (prefers-reduced-motion: reduce){
   .frame canvas{transition:none} .frame.reveal img{animation:none} .opt.wrong{animation:none} .opt:active{transform:none}
@@ -288,6 +331,13 @@ body.hc .opt{outline:2px solid #fff}
         <select id="setGroup"></select>
       </div>
       <div class="field">
+        <span class="lbl" id="lblMode">How to play</span>
+        <div class="seg" role="group" aria-labelledby="lblMode" data-setting="mode">
+          <button type="button" data-val="local">On this device</button><button type="button" data-val="online">Online (friends join by link)</button>
+        </div>
+        <p class="note" id="modeNote"></p>
+      </div>
+      <div class="field">
         <span class="lbl" id="lblRounds">Rounds</span>
         <div class="seg" role="group" aria-labelledby="lblRounds" data-setting="rounds">
           <button type="button" data-val="10">10</button><button type="button" data-val="20">20</button><button type="button" data-val="0">Endless</button>
@@ -299,7 +349,7 @@ body.hc .opt{outline:2px solid #fff}
           <button type="button" data-val="0">Off</button><button type="button" data-val="10">10s</button><button type="button" data-val="15">15s</button><button type="button" data-val="20">20s</button>
         </div>
       </div>
-      <div class="field">
+      <div class="field" id="playersField">
         <label for="playerInput">Players (optional)</label>
         <div class="guessrow">
           <input type="text" id="playerInput" placeholder="Add a player name" maxlength="20" autocomplete="off">
@@ -323,6 +373,23 @@ body.hc .opt{outline:2px solid #fff}
       <p class="note" id="setupInfo"></p>
       <button class="primary" id="startBtn" type="button">Start game</button>
       <button class="ghost wide" id="startPresBtn" type="button">Start in presenter mode</button>
+      <button class="ghost wide" id="joinEntry" type="button">Have a room code? Join a game</button>
+    </div>
+
+    <!-- lobby (online) -->
+    <div id="lobby" class="kres" hidden>
+      <h2>Join the game</h2>
+      <p class="note">Friends open the link below, or open this page, tap “Join a game” and type the room code.</p>
+      <div class="roomcode" id="roomCode" aria-live="polite">·····</div>
+      <div class="linkrow"><input type="text" id="joinLink" readonly aria-label="Join link"><button class="ghost" id="copyLink" type="button">Copy link</button></div>
+      <p class="note" id="lobbyStatus" aria-live="polite"></p>
+      <p class="note" id="lobbyFile" hidden>This page is open from a file, so friends cannot reach it. Put it on GitHub Pages and open it from there.</p>
+      <strong id="lobbyCount">0 players joined</strong>
+      <div class="chips" id="lobbyPlayers"></div>
+      <div class="resbtns">
+        <button class="primary" id="lobbyStart" type="button">Start game</button>
+        <button class="ghost wide" id="lobbyCancel" type="button">Cancel</button>
+      </div>
     </div>
 
     <!-- game -->
@@ -345,6 +412,7 @@ body.hc .opt{outline:2px solid #fff}
         </div>
         <div class="kpts" id="badge"><b><span id="ptsNum">15</span><small>pts</small></b><em id="lvlTxt">Level 1 of 3</em></div>
       </div>
+      <div class="anscount" id="ansCount" hidden></div>
       <div class="feedback" id="feedback" aria-live="polite"></div>
       <div class="options" id="options" role="group" aria-label="Answer options"></div>
       <div class="ctrl" id="ctrlRow">
@@ -353,7 +421,7 @@ body.hc .opt{outline:2px solid #fff}
         <button class="ghost" id="skipBtn" type="button">Skip photo</button>
       </div>
       <button class="primary" id="nextBtn" type="button" hidden>Next photo</button>
-      <p class="keys">Keys: Space next level · Enter reveal · 1–4 or A–D answer · N next · S skip · P presenter · F fullscreen · M sound</p>
+      <p class="keys">Keys: Space next level · Enter reveal · 1–9 answer (on this device) · N next · S skip · P presenter · F fullscreen · M sound</p>
       <div class="kbar">
         <div class="stats" id="soloStats">
           <div class="stat"><b id="sScore">0</b><span>Score</span></div>
@@ -414,6 +482,36 @@ body.hc .opt{outline:2px solid #fff}
     </div>
     <p class="privacy" id="privacy">Photos stay on this device. Clearing your browser data erases them.</p>
   </section>
+
+  <section id="join" class="pl" hidden>
+    <div class="ktop">
+      <strong class="kpill" id="plWho">Guess Who?</strong>
+      <span class="kpill" id="plScore" hidden>0 pts</span>
+    </div>
+    <div class="notice" id="plConn" hidden>Connection lost. Reconnecting…</div>
+    <form id="plForm" class="card" autocomplete="off">
+      <h2>Join a game</h2>
+      <div class="field"><label for="joinCode">Room code</label><input type="text" id="joinCode" maxlength="5" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="ABCDE"></div>
+      <div class="field"><label for="joinName">Your name</label><input type="text" id="joinName" maxlength="20" placeholder="Your name"></div>
+      <p class="msg" id="plMsg" aria-live="polite"></p>
+      <button class="primary" type="submit" id="joinBtn">Join</button>
+      <button class="ghost wide" type="button" id="plBack">Back</button>
+    </form>
+    <div id="plWait" class="kres" hidden>
+      <h2 id="plWaitT">You’re in!</h2>
+      <p class="note" id="plWaitS"></p>
+      <button class="primary" id="plAgain" type="button" hidden>Join another game</button>
+    </div>
+    <div id="plRound" class="stack" hidden>
+      <div class="plhead">
+        <div class="kring off" id="plRing"><span id="plRingTxt"></span></div>
+        <h2 class="kq" id="plQ">Who is this?</h2>
+        <div class="kpts"><b><span id="plPts">15</span><small>pts</small></b><em id="plLvl">Level 1 of 3</em></div>
+      </div>
+      <div class="feedback" id="plFeed" aria-live="polite"></div>
+      <div class="options" id="plOptions" role="group" aria-label="Names"></div>
+    </div>
+  </section>
 </main>
 
 <canvas id="confetti" aria-hidden="true"></canvas>
@@ -448,7 +546,7 @@ body.hc .opt{outline:2px solid #fff}
 (function(){
   var $ = function(s){ return document.querySelector(s); };
   var POINTS = [15, 10, 5];
-  var MAX_PLAYERS = 8;
+  var MAX_PLAYERS = 8, MAX_ONLINE = 20, MAX_CHOICES = 20, FIRST_BONUS = 5;
 
   var ls = {
     get: function(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } },
@@ -456,7 +554,7 @@ body.hc .opt{outline:2px solid #fff}
   };
 
   /* ---------- settings ---------- */
-  var DEF = { group: 'all', rounds: 10, timer: 0, sound: true, large: false, hc: false, players: [] };
+  var DEF = { group: 'all', rounds: 10, timer: 0, sound: true, large: false, hc: false, players: [], mode: 'local' };
   function cleanSettings(s){
     var o = {};
     s = s && typeof s === 'object' ? s : {};
@@ -465,6 +563,7 @@ body.hc .opt{outline:2px solid #fff}
     o.players = o.players.filter(function(x){ return typeof x === 'string' && x.trim(); }).map(function(x){ return x.trim().slice(0, 20); }).slice(0, MAX_PLAYERS);
     if ([0, 10, 20].indexOf(o.rounds) < 0) o.rounds = 10;
     if ([0, 10, 15, 20].indexOf(o.timer) < 0) o.timer = 0;
+    if (o.mode !== 'online') o.mode = 'local';
     if (typeof o.group !== 'string') o.group = 'all';
     return o;
   }
@@ -638,7 +737,7 @@ body.hc .opt{outline:2px solid #fff}
   document.addEventListener('fullscreenchange', function(){ $('#fsBtn').textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen'; });
 
   /* ---------- tabs ---------- */
-  var G = { view: 'setup', deck: [], roundNo: 0, total: 0, played: 0, correct: 0, players: [], solo: { score: 0, streak: 0, bestGame: 0 }, lastKey: null };
+  var G = { online: false, view: 'setup', deck: [], roundNo: 0, total: 0, played: 0, correct: 0, players: [], solo: { score: 0, streak: 0, bestGame: 0 }, lastKey: null };
   var round = null, roundToken = 0;
 
   function setTab(t){
@@ -957,7 +1056,7 @@ body.hc .opt{outline:2px solid #fff}
     }).join('');
     $('#setGroup').value = settings.group;
     document.querySelectorAll('.seg[data-setting]').forEach(function(seg){
-      seg.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed', String(+b.dataset.val === settings[seg.dataset.setting])); });
+      seg.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed', String(String(settings[seg.dataset.setting]) === b.dataset.val)); });
     });
     $('#playerChips').innerHTML = settings.players.map(function(n, i){
       return '<span class="pchip"><span>' + esc(n) + '</span><button type="button" data-rmplayer="' + i + '" aria-label="Remove ' + esc(n) + '">×</button></span>';
@@ -969,12 +1068,19 @@ body.hc .opt{outline:2px solid #fff}
     var who = {}; items.forEach(function(i){ who[i.person.id] = 1; });
     $('#setupInfo').textContent = items.length ? plural(items.length, 'cropped photo') + ' ready from ' + plural(Object.keys(who).length, 'person', 'people') + '.' : '';
     $('#startBtn').disabled = !!notice; $('#startPresBtn').disabled = !!notice;
+    var online = settings.mode === 'online';
+    $('#playersField').hidden = online;
+    $('#modeNote').textContent = online
+      ? 'Friends join from their phones with a link and a room code (up to ' + MAX_ONLINE + ' players). Keep sharing your screen so they can see the photo. They pick from all the names.'
+      : 'One screen. You tap who answered first, then tap their answer.';
+    $('#startBtn').textContent = online ? 'Open lobby' : 'Start game';
+    $('#startPresBtn').textContent = online ? 'Open lobby in presenter mode' : 'Start in presenter mode';
     applyDisplay();
   }
   $('#setGroup').addEventListener('change', function(e){ settings.group = e.target.value; saveSettings(); renderSetup(); });
   document.addEventListener('click', function(e){
     var b = e.target.closest('.seg[data-setting] button');
-    if (b){ settings[b.parentNode.dataset.setting] = +b.dataset.val; saveSettings(); renderSetup(); return; }
+    if (b){ var sk = b.parentNode.dataset.setting; settings[sk] = sk === 'mode' ? b.dataset.val : +b.dataset.val; saveSettings(); renderSetup(); return; }
     var tg = e.target.closest('.tog');
     if (tg){ settings[tg.dataset.tog] = !settings[tg.dataset.tog]; saveSettings(); applyDisplay(); if (tg.dataset.tog === 'sound' && settings.sound) sfx.good(); return; }
     var rm = e.target.closest('[data-rmplayer]');
@@ -989,8 +1095,8 @@ body.hc .opt{outline:2px solid #fff}
   }
   $('#addPlayer').onclick = addPlayer;
   $('#playerInput').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); addPlayer(); } });
-  $('#startBtn').onclick = function(){ startGame(false); };
-  $('#startPresBtn').onclick = function(){ startGame(true); };
+  $('#startBtn').onclick = function(){ if (settings.mode === 'online') hostOpen(false); else startGame(false); };
+  $('#startPresBtn').onclick = function(){ if (settings.mode === 'online') hostOpen(true); else startGame(true); };
 
   /* ---------- timer ---------- */
   var T = { id: null, end: 0, dur: 0, left: 0, lastSec: -1, paused: false };
@@ -1018,6 +1124,7 @@ body.hc .opt{outline:2px solid #fff}
   function onTimeout(){
     if (!round || round.done) return;
     if (round.level < 2) setLevel(round.level + 1);
+    else if (G.online) endRoundOnline('time');
     else finishRound({ good: false, text: 'Time’s up. It was ' + round.person.name + '.' });
   }
 
@@ -1026,12 +1133,14 @@ body.hc .opt{outline:2px solid #fff}
     $('#setup').hidden = G.view !== 'setup';
     $('#game').hidden = G.view !== 'game';
     $('#results').hidden = G.view !== 'results';
+    $('#lobby').hidden = G.view !== 'lobby';
   }
   function say(text, kind){ var f = $('#feedback'); f.textContent = text || ''; f.className = 'feedback' + (kind ? ' ' + kind : ''); }
 
   function startGame(pres){
     if (!canStart()) return;
     ac();
+    G.online = false;
     G.players = settings.players.map(function(n, i){ return { id: 'p' + i, name: n, score: 0, correct: 0 }; });
     G.solo = { score: 0, streak: 0, bestGame: 0 };
     G.roundNo = 0; G.played = 0; G.correct = 0; G.total = settings.rounds || 0; G.deck = []; G.lastKey = null;
@@ -1052,12 +1161,14 @@ body.hc .opt{outline:2px solid #fff}
     }
     return G.deck.shift();
   }
+  /* Choices are the names of everyone in the game (up to 20), in alphabetical order. */
   function buildOptions(person){
-    var want = Math.min(4, people.length) - 1;
-    var inGroup = shuffle(poolPeople().filter(function(p){ return p !== person; }));
-    var rest = shuffle(people.filter(function(p){ return p !== person && inGroup.indexOf(p) < 0; }));
-    return shuffle([person].concat(inGroup.concat(rest).slice(0, want)));
+    var pool = poolPeople();
+    if (pool.length < 2) pool = people.slice();
+    var others = shuffle(pool.filter(function(p){ return p !== person; })).slice(0, MAX_CHOICES - 1);
+    return [person].concat(others).sort(function(a, b){ return a.name.localeCompare(b.name); });
   }
+  function gridCols(n){ return n <= 8 ? 2 : (n <= 12 ? 3 : 4); }
 
   function startRound(retry){
     if (G.total && G.roundNo >= G.total){ showResults(); return; }
@@ -1067,17 +1178,24 @@ body.hc .opt{outline:2px solid #fff}
     var token = ++roundToken;
     loadImg(item.photo.src).then(function(im){
       if (token !== roundToken) return;
-      round = { item: item, person: item.person, photo: item.photo, img: im, options: buildOptions(item.person), level: 0, done: false, sel: null, out: {} };
+      round = { item: item, person: item.person, photo: item.photo, img: im, options: buildOptions(item.person), level: 0, done: false, sel: null, out: {},
+                rid: ++NET.rid, answers: {}, n: 0, counts: {} };
       $('#fullImg').src = item.photo.src; $('#fullImg').alt = '';
       $('#cropCanvas').classList.remove('gone');
       var fr = $('#frame'); fr.classList.remove('reveal');
+      var cnt = round.options.length, cols = gridCols(cnt);
+      $('#game').classList.toggle('many', cnt > 8);
+      $('#game').style.setProperty('--orows', String(Math.ceil(cnt / cols)));
+      $('#options').style.setProperty('--cols', String(cols));
+      $('#options').classList.toggle('compact', cnt > 8);
       $('#options').innerHTML = round.options.map(function(o, i){
-        return '<button type="button" class="opt c' + i + '" data-pick="' + o.id + '">' + SHAPES[i] + '<span>' + esc(o.name) + '</span></button>';
+        return '<button type="button" class="opt c' + (i % 4) + '" data-pick="' + o.id + '"' + (G.online ? ' disabled' : '') + '>' + SHAPES[i % 4] + '<span>' + esc(o.name) + '</span></button>';
       }).join('');
       $('#question').textContent = 'Who is this?';
       say('');
       $('#nextBtn').hidden = true; $('#ctrlRow').hidden = false;
       drawLevel(); updateTop(); timerStart();
+      if (G.online){ netAll(roundMsg(null)); renderAnsCount(); }
     }).catch(function(){
       if (token !== roundToken) return;
       G.roundNo--;
@@ -1096,15 +1214,27 @@ body.hc .opt{outline:2px solid #fff}
   function setLevel(n){
     if (!round || round.done || n > 2) return;
     round.level = n; drawLevel(); timerStart(); sfx.level();
+    if (G.online) netAll({ t: 'level', rid: round.rid, level: n, pts: POINTS[n], ms: levelMs(), dur: settings.timer * 1000 });
   }
   function updateTop(){
     $('#roundLbl').textContent = G.total ? 'Round ' + Math.min(G.roundNo, G.total) + ' of ' + G.total : 'Round ' + G.roundNo;
-    var solo = !G.players.length;
+    var solo = !G.players.length && !G.online;
     $('#soloStats').hidden = !solo; $('#board').hidden = solo;
     if (solo){ $('#sScore').textContent = G.solo.score; $('#sStreak').textContent = G.solo.streak; $('#sBest').textContent = best; }
     else renderBoard();
   }
   function renderBoard(){
+    if (G.online){
+      var dense = G.players.length > 6;
+      $('#board').classList.toggle('dense', dense);
+      $('#game').style.setProperty('--boardH', dense ? (Math.ceil(G.players.length / 5) - 1) * 30 + 'px' : '0px');
+      $('#board').innerHTML = G.players.map(function(p){
+        var a = round && round.answers && round.answers[p.id], mark = '';
+        if (a) mark = round.done ? (a.ok ? '✓' : '✗') : '#' + a.order;
+        return '<span class="chip' + (p.connected ? '' : ' off') + '"><span class="cn">' + esc(p.name) + '</span>' + (mark ? '<em class="ord">' + mark + '</em>' : '') + '<b class="cs">' + p.score + '</b></span>';
+      }).join('');
+      return;
+    }
     $('#board').innerHTML = G.players.map(function(p){
       var out = round && round.out[p.id], sel = round && round.sel === p.id;
       return '<button type="button" class="chip' + (out ? ' out' : '') + '" data-player="' + p.id + '" aria-pressed="' + (sel ? 'true' : 'false') + '"' + (out ? ' disabled' : '') + '>' +
@@ -1158,6 +1288,11 @@ body.hc .opt{outline:2px solid #fff}
       b.disabled = true;
       if (b.dataset.pick === round.person.id) b.classList.add('correct');
       else if (!b.classList.contains('wrong')) b.classList.add('dim');
+      var c = round.counts && round.counts[b.dataset.pick];
+      if (c){
+        if (b.dataset.pick !== round.person.id){ b.classList.remove('dim'); b.classList.add('wrong'); }
+        b.insertAdjacentHTML('beforeend', '<em class="cnt">' + c + '</em>');
+      }
     });
     $('#cropCanvas').classList.add('gone');
     var fr = $('#frame'); fr.classList.remove('reveal'); void fr.offsetWidth; fr.classList.add('reveal');
@@ -1170,10 +1305,12 @@ body.hc .opt{outline:2px solid #fff}
     var last = G.total && G.roundNo >= G.total;
     $('#nextBtn').textContent = last ? 'See results' : 'Next photo'; $('#nextBtn').hidden = false;
     updateTop();
+    if (G.online){ renderAnsCount(); if (o.online) netSendResults(); }
   }
 
   function revealNow(){
     if (!round || round.done) return;
+    if (G.online){ endRoundOnline('reveal'); return; }
     finishRound({ good: false, text: 'That’s ' + round.person.name + '.', silent: true });
   }
   function skipPhoto(){
@@ -1185,10 +1322,10 @@ body.hc .opt{outline:2px solid #fff}
     startRound(0);
   }
 
-  $('#options').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b) pick(b.dataset.pick); });
+  $('#options').addEventListener('click', function(e){ var b = e.target.closest('.opt'); if (b && !G.online) pick(b.dataset.pick); });
   $('#board').addEventListener('click', function(e){
     var b = e.target.closest('.chip');
-    if (!b || !round || round.done) return;
+    if (!b || !round || round.done || G.online) return;
     round.sel = round.sel === b.dataset.player ? null : b.dataset.player;
     if (round.sel) say('');
     renderBoard();
@@ -1228,6 +1365,8 @@ body.hc .opt{outline:2px solid #fff}
       if (rest.length) html += '<ol class="rank">' + rest.map(function(r){
         return '<li class="rankrow"><b class="rk">' + r.rank + '</b><span class="rn">' + esc(r.p.name) + '</span><span class="rc">' + r.p.correct + ' correct</span><b class="rs">' + r.p.score + '</b></li>';
       }).join('') + '</ol>';
+    } else if (G.online){
+      html = '<p class="note">No players were connected.</p>';
     } else {
       html = '<div class="stats3"><div class="stat"><b>' + G.solo.score + '</b><span>Score</span></div>' +
         '<div class="stat"><b>' + G.correct + '/' + G.played + '</b><span>Correct</span></div>' +
@@ -1235,9 +1374,12 @@ body.hc .opt{outline:2px solid #fff}
     }
     $('#resTitle').textContent = title; $('#resSub').textContent = sub; $('#resBody').innerHTML = html;
     if (G.played){ sfx.win(); confetti(160); }
+    $('#againBtn').textContent = G.online ? 'Play again with the same players' : 'Play again';
+    if (G.online) G.players.forEach(function(p){ if (p.connected) netSend(p, overMsg(p)); });
   }
-  $('#againBtn').onclick = function(){ startGame(isPresent()); };
-  $('#toSetupBtn').onclick = function(){ G.view = 'setup'; setPresent(false); showView(); renderSetup(); };
+  function playAgain(){ if (G.online) startOnlineGame(); else startGame(isPresent()); }
+  $('#againBtn').onclick = playAgain;
+  $('#toSetupBtn').onclick = function(){ if (G.online) closeNet(); G.view = 'setup'; setPresent(false); showView(); renderSetup(); };
 
   /* ---------- keyboard ---------- */
   document.addEventListener('keydown', function(e){
@@ -1248,7 +1390,7 @@ body.hc .opt{outline:2px solid #fff}
     var ae = document.activeElement;
     if (ae && ae !== document.body && ae !== document.documentElement) return;
     var k = e.key;
-    if (G.view === 'results'){ if (k === 'Enter' || k === 'n' || k === 'N'){ e.preventDefault(); startGame(isPresent()); } return; }
+    if (G.view === 'results'){ if (k === 'Enter' || k === 'n' || k === 'N'){ e.preventDefault(); playAgain(); } return; }
     if (!round) return;
     if (k === ' '){
       e.preventDefault();
@@ -1262,10 +1404,433 @@ body.hc .opt{outline:2px solid #fff}
     else if (k === 'f' || k === 'F') toggleFS();
     else if (k === 'm' || k === 'M'){ settings.sound = !settings.sound; saveSettings(); applyDisplay(); }
     else {
-      var idx = '1234'.indexOf(k);
-      if (idx < 0) idx = 'abcd'.indexOf(k.toLowerCase());
+      if (G.online) return;
+      var idx = '123456789'.indexOf(k);
       if (idx >= 0 && idx < round.options.length) pick(round.options[idx].id);
     }
+  });
+
+  /* ---------- online play: friends join by link (PeerJS, peer to peer) ---------- */
+  var NET = { peer: null, code: '', ready: false, rid: 0, allT: 0 };
+  var PL = { peer: null, conn: null, code: '', pid: '', name: '', joined: false, retries: 0, rid: 0, locked: null, fromURL: false, closing: false, guard: 0, rt: 0, ringT: 0, ringEnd: 0, ringDur: 0 };
+  var CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  function makeCode(){ var c = ''; for (var i = 0; i < 5; i++) c += CODE_CHARS.charAt(rand(CODE_CHARS.length)); return c; }
+  function normCode(s){ return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); }
+  function peerIdFor(code){ return 'guesswho-' + code; }
+  function PeerCtor(){ return window.Peer || (window.peerjs && window.peerjs.Peer); }
+  function peerOpts(){ return window.GW_PEER_OPTS || {}; }
+  function loadPeerJS(){
+    return new Promise(function(res, rej){
+      if (PeerCtor()){ res(); return; }
+      var urls = window.GW_PEERJS_URL ? [window.GW_PEERJS_URL] : ['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+      var i = 0;
+      (function next(){
+        if (i >= urls.length){ rej(new Error('load')); return; }
+        var sc = document.createElement('script');
+        sc.src = urls[i++];
+        sc.onload = function(){ if (PeerCtor()) res(); else next(); };
+        sc.onerror = function(){ sc.remove(); next(); };
+        document.head.appendChild(sc);
+      })();
+    });
+  }
+  function joinLink(){ return location.href.split(/[?#]/)[0] + '?join=' + NET.code; }
+  function netSend(p, m){ try { if (p.conn && p.conn.open) p.conn.send(m); } catch(e){} }
+  function netAll(m){ G.players.forEach(function(p){ if (p.connected) netSend(p, m); }); }
+  function connectedPlayers(){ return G.players.filter(function(p){ return p.connected; }); }
+  function playerById(id){ for (var i = 0; i < G.players.length; i++) if (G.players[i].id === id) return G.players[i]; return null; }
+  function rankOf(p){ return 1 + G.players.filter(function(q){ return q.score > p.score; }).length; }
+  function levelMs(){
+    if (!settings.timer) return 0;
+    if (T.id) return Math.max(0, T.end - Date.now());
+    if (T.paused) return T.left;
+    return settings.timer * 1000;
+  }
+
+  /* --- host --- */
+  function setLobbyStatus(t, err){ var el = $('#lobbyStatus'); el.textContent = t || ''; el.style.color = err ? '#FFB4B4' : ''; }
+  function lobbyError(t){ setLobbyStatus(t, true); NET.ready = false; renderLobby(); }
+  function renderLobby(){
+    $('#roomCode').textContent = NET.code || '·····';
+    $('#joinLink').value = NET.code ? joinLink() : '';
+    $('#copyLink').disabled = !NET.code;
+    $('#lobbyFile').hidden = location.protocol !== 'file:';
+    $('#lobbyCount').textContent = plural(G.players.length, 'player') + ' joined (max ' + MAX_ONLINE + ')';
+    $('#lobbyPlayers').innerHTML = G.players.map(function(p){
+      return '<span class="pchip"><span>' + esc(p.name) + '</span><button type="button" data-kick="' + esc(p.id) + '" aria-label="Remove ' + esc(p.name) + '">×</button></span>';
+    }).join('');
+    $('#lobbyStart').disabled = !NET.ready || !connectedPlayers().length;
+    if (NET.ready && !$('#lobbyStatus').textContent) setLobbyStatus('Ready. Waiting for players to join…');
+  }
+  function hostOpen(pres){
+    if (!canStart()) return;
+    ac();
+    closeNet(true);
+    G.online = true; G.players = []; G.view = 'lobby'; G.deck = []; G.lastKey = null;
+    setPresent(!!pres); showView(); setLobbyStatus('Connecting to the online service…'); renderLobby();
+    loadPeerJS().then(function(){ hostPeer(0); }).catch(function(){ lobbyError('Could not load the online library. Check your internet connection, then tap Cancel and try again.'); });
+  }
+  function hostPeer(tries){
+    var code = makeCode(), p;
+    try { p = new (PeerCtor())(peerIdFor(code), peerOpts()); } catch(e){ lobbyError('Could not start online play in this browser.'); return; }
+    NET.peer = p; NET.ready = false; NET.code = '';
+    var t = setTimeout(function(){ if (!NET.ready && NET.peer === p) lobbyError('Could not reach the online service. Check your internet, then tap Cancel and try again.'); }, 15000);
+    p.on('open', function(){ clearTimeout(t); if (NET.peer !== p) return; NET.ready = true; NET.code = code; setLobbyStatus(''); renderLobby(); });
+    p.on('connection', hostConn);
+    p.on('disconnected', function(){ if (NET.peer === p){ try { p.reconnect(); } catch(e){} } });
+    p.on('error', function(err){
+      if (NET.peer !== p) return;
+      clearTimeout(t);
+      if (err && err.type === 'unavailable-id' && tries < 6){ NET.peer = null; try { p.destroy(); } catch(e){} hostPeer(tries + 1); return; }
+      if (!NET.ready) lobbyError('Could not reach the online service. Check your internet, then tap Cancel and try again.');
+    });
+  }
+  function closeNet(quiet){
+    clearTimeout(NET.allT);
+    if (!quiet && G.online) netAll({ t: 'ended' });
+    var p = NET.peer; NET.peer = null; NET.ready = false; NET.code = '';
+    if (p) setTimeout(function(){ try { p.destroy(); } catch(e){} }, quiet ? 0 : 400);
+    G.online = false; G.players = [];
+  }
+  function hostConn(conn){
+    conn.on('data', function(m){ hostMsg(conn, m); });
+    conn.on('close', function(){ hostGone(conn); });
+    conn.on('error', function(){ hostGone(conn); });
+  }
+  function reject(conn, reason){
+    try { conn.send({ t: 'reject', reason: reason }); } catch(e){}
+    setTimeout(function(){ try { conn.close(); } catch(e){} }, 400);
+  }
+  function hostMsg(conn, m){
+    if (!G.online || !m || typeof m !== 'object') return;
+    if (m.t === 'join'){
+      var pid = String(m.pid || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      var name = String(m.name || '').replace(/\s+/g, ' ').trim().slice(0, 20);
+      if (!pid || !name){ reject(conn, 'bad'); return; }
+      var p = playerById(pid);
+      if (p){
+        if (p.conn && p.conn !== conn){ var old = p.conn; p.conn = null; try { old.close(); } catch(e){} }
+        p.conn = conn; p.connected = true;
+      } else {
+        if (G.players.length >= MAX_ONLINE){ reject(conn, 'full'); return; }
+        var low = name.toLowerCase();
+        if (G.players.some(function(x){ return x.name.toLowerCase() === low; })){ reject(conn, 'name'); return; }
+        p = { id: pid, name: name, score: 0, correct: 0, conn: conn, connected: true, online: true };
+        G.players.push(p);
+      }
+      conn._pid = pid;
+      netSend(p, { t: 'joined', pid: pid, name: p.name, snap: snapshotFor(p) });
+      if (G.view === 'lobby'){ netAll({ t: 'lobby', n: G.players.length }); renderLobby(); }
+      else if (G.view === 'game'){ updateTop(); renderAnsCount(); }
+    } else if (m.t === 'ans'){
+      var q = playerById(conn._pid);
+      if (q && q.conn === conn) onAnswer(q, m);
+    } else if (m.t === 'bye'){
+      hostGone(conn);
+    }
+  }
+  function hostGone(conn){
+    var p = conn._pid ? playerById(conn._pid) : null;
+    if (!p || p.conn !== conn) return;
+    p.connected = false; p.conn = null;
+    if (G.view === 'lobby'){
+      G.players = G.players.filter(function(x){ return x !== p; });
+      netAll({ t: 'lobby', n: G.players.length }); renderLobby();
+    } else if (G.view === 'game'){ updateTop(); renderAnsCount(); checkAllAnswered(); }
+  }
+  $('#lobbyPlayers').addEventListener('click', function(e){
+    var b = e.target.closest('[data-kick]');
+    if (!b) return;
+    var p = playerById(b.dataset.kick);
+    if (!p) return;
+    netSend(p, { t: 'kick' });
+    G.players = G.players.filter(function(x){ return x !== p; });
+    var c = p.conn; p.conn = null; p.connected = false;
+    setTimeout(function(){ try { c && c.close(); } catch(err){} }, 400);
+    netAll({ t: 'lobby', n: G.players.length }); renderLobby();
+  });
+  $('#copyLink').onclick = function(){
+    var v = $('#joinLink').value;
+    function done(ok){ setLobbyStatus(ok ? 'Link copied.' : 'Select the link and copy it.'); if (!ok){ $('#joinLink').select(); } }
+    try { navigator.clipboard.writeText(v).then(function(){ done(true); }, function(){ done(false); }); } catch(e){ done(false); }
+  };
+  $('#lobbyStart').onclick = startOnlineGame;
+  $('#lobbyCancel').onclick = function(){ closeNet(); G.view = 'setup'; setPresent(false); showView(); renderSetup(); };
+
+  function startOnlineGame(){
+    if (!G.online || !connectedPlayers().length) return;
+    G.players = G.players.filter(function(p){ return p.connected; });
+    G.players.forEach(function(p){ p.score = 0; p.correct = 0; });
+    G.roundNo = 0; G.played = 0; G.correct = 0; G.total = settings.rounds || 0; G.deck = []; G.lastKey = null;
+    G.view = 'game'; showView(); startRound(0);
+  }
+
+  function roundMsg(picked){
+    return { t: 'round', rid: round.rid, no: G.roundNo, total: G.total, level: round.level, pts: POINTS[round.level],
+             options: round.options.map(function(o){ return { id: o.id, name: o.name }; }), ms: levelMs(), dur: settings.timer * 1000, picked: picked || null };
+  }
+  function resultMsg(p){
+    var a = round.answers && round.answers[p.id];
+    return { t: 'result', rid: round.rid, correct: round.person.id, correctName: round.person.name, answered: !!a, picked: a ? a.pick : null,
+             ok: !!(a && a.ok), pts: a ? a.pts : 0, first: !!(a && a.first), score: p.score, rank: rankOf(p), n: G.players.length };
+  }
+  function overMsg(p){
+    var top = G.players.slice().sort(function(a, b){ return b.score - a.score; }).slice(0, 3).map(function(x){ return { name: x.name, score: x.score }; });
+    return { t: 'over', score: p.score, rank: rankOf(p), n: G.players.length, correct: p.correct, played: G.played, top: top };
+  }
+  function snapshotFor(p){
+    if (G.view === 'results') return overMsg(p);
+    if (G.view === 'game'){
+      if (!round) return { t: 'wait' };
+      if (round.done) return resultMsg(p);
+      var a = round.answers[p.id];
+      return roundMsg(a ? a.pick : null);
+    }
+    return { t: 'lobby', n: G.players.length };
+  }
+  function netSendResults(){ G.players.forEach(function(p){ if (p.connected) netSend(p, resultMsg(p)); }); }
+
+  function onAnswer(p, m){
+    if (!round || round.done || m.rid !== round.rid || round.answers[p.id]) return;
+    var id = String(m.pick || '');
+    if (!round.options.some(function(o){ return o.id === id; })) return;
+    round.n++;
+    round.answers[p.id] = { pid: p.id, pick: id, order: round.n, level: round.level, ok: id === round.person.id, pts: 0, first: false };
+    netSend(p, { t: 'ack', rid: round.rid, pick: id });
+    renderAnsCount(); updateTop();
+    checkAllAnswered();
+  }
+  function checkAllAnswered(){
+    if (!G.online || !round || round.done || G.view !== 'game') return;
+    var cp = connectedPlayers();
+    if (!cp.length) return;
+    if (cp.every(function(p){ return round.answers[p.id]; })){
+      var rid = round.rid;
+      clearTimeout(NET.allT);
+      NET.allT = setTimeout(function(){ if (round && !round.done && round.rid === rid) endRoundOnline('all'); }, 900);
+    }
+  }
+  function renderAnsCount(){
+    var el = $('#ansCount');
+    if (!G.online || !round || round.done){ el.hidden = true; return; }
+    var cp = connectedPlayers(), n = cp.filter(function(p){ return round.answers[p.id]; }).length;
+    el.hidden = false; el.textContent = 'Answered: ' + n + ' of ' + cp.length;
+  }
+  function endRoundOnline(why){
+    if (!round || round.done) return;
+    clearTimeout(NET.allT);
+    var ans = Object.keys(round.answers).map(function(k){ return round.answers[k]; }).sort(function(a, b){ return a.order - b.order; });
+    var first = ans.filter(function(a){ return a.ok; })[0] || null, nOk = 0;
+    round.counts = {};
+    ans.forEach(function(a){
+      round.counts[a.pick] = (round.counts[a.pick] || 0) + 1;
+      var p = playerById(a.pid); if (!p) return;
+      if (a.ok){
+        nOk++; a.first = a === first;
+        a.pts = POINTS[a.level] + (a.first ? FIRST_BONUS : 0);
+        p.score += a.pts; p.correct++;
+      }
+    });
+    var total = G.players.filter(function(p){ return p.connected || round.answers[p.id]; }).length;
+    var text = (why === 'time' ? 'Time’s up. ' : '') + 'It was ' + round.person.name + '. ' +
+      (ans.length ? nOk + ' of ' + total + ' got it.' : 'Nobody answered.');
+    if (first){ var fp = playerById(first.pid); if (fp) text += ' First: ' + fp.name + '.'; }
+    finishRound({ good: !!first, pts: first ? first.pts : 0, text: text, online: true, silent: !first });
+  }
+
+  /* --- player (phone) --- */
+  function getPid(code){
+    var k = 'gw-pid-' + code, v = null;
+    try { v = sessionStorage.getItem(k); } catch(e){}
+    if (!v){ v = uid(); try { sessionStorage.setItem(k, v); } catch(e){} }
+    return v;
+  }
+  function plShow(which){ ['plForm', 'plWait', 'plRound'].forEach(function(id){ $('#' + id).hidden = id !== which; }); }
+  function plMsgForm(t, err){ var m = $('#plMsg'); m.textContent = t || ''; m.className = 'msg' + (err ? ' err' : ''); }
+  function plFeed(t, kind){ var f = $('#plFeed'); f.textContent = t || ''; f.className = 'feedback' + (kind ? ' ' + kind : ''); }
+  function plWait(title, sub){ plShow('plWait'); $('#plWaitT').textContent = title; $('#plWaitS').textContent = sub || ''; $('#plAgain').hidden = true; plStopRing(); }
+  function plStopRing(){ clearInterval(PL.ringT); PL.ringT = 0; $('#plRing').classList.add('off'); }
+  function plRing(ms, dur){
+    plStopRing();
+    if (!dur || !ms) return;
+    PL.ringEnd = Date.now() + ms; PL.ringDur = dur;
+    var ring = $('#plRing'); ring.classList.remove('off');
+    function tick(){
+      var left = Math.max(0, PL.ringEnd - Date.now()), sec = Math.ceil(left / 1000);
+      ring.style.setProperty('--p', String(left / PL.ringDur * 100)); ring.classList.toggle('low', sec <= 3);
+      $('#plRingTxt').textContent = sec;
+      if (left <= 0) clearInterval(PL.ringT);
+    }
+    PL.ringT = setInterval(tick, 200); tick();
+  }
+  function plClean(){
+    clearTimeout(PL.guard); clearTimeout(PL.rt);
+    var p = PL.peer; PL.peer = null; PL.conn = null;
+    if (p){ try { p.destroy(); } catch(e){} }
+  }
+  function plFail(text){
+    plClean(); PL.joined = false; plStopRing();
+    plShow('plForm'); plMsgForm(text, true); $('#joinBtn').disabled = false; $('#plConn').hidden = true;
+  }
+  function plLeave(){
+    PL.closing = true;
+    try { if (PL.conn && PL.conn.open) PL.conn.send({ t: 'bye' }); } catch(e){}
+    plClean(); PL.joined = false; plStopRing();
+  }
+  function plEnd(text){
+    PL.closing = true; plClean(); PL.joined = false;
+    plWait('Game ended', text); $('#plAgain').hidden = false; $('#plConn').hidden = true;
+  }
+  function plConnect(silent){
+    plClean();
+    if (!silent){ plMsgForm('Connecting…'); $('#joinBtn').disabled = true; }
+    PL.guard = setTimeout(function(){
+      if (!PL.joined) plFail('Could not connect. Check the room code and your internet, then try again.');
+    }, 15000);
+    loadPeerJS().then(function(){
+      var peer = new (PeerCtor())(peerOpts());
+      PL.peer = peer;
+      peer.on('open', function(){
+        if (PL.peer !== peer) return;
+        var conn = peer.connect(peerIdFor(PL.code), { reliable: true });
+        PL.conn = conn;
+        conn.on('open', function(){ if (PL.conn === conn) conn.send({ t: 'join', pid: PL.pid, name: PL.name }); });
+        conn.on('data', function(m){ if (PL.conn === conn) plMsg(m); });
+        conn.on('close', function(){ if (PL.conn === conn) plClosed(); });
+        conn.on('error', function(){ if (PL.conn === conn) plClosed(); });
+      });
+      peer.on('error', function(err){
+        if (PL.peer !== peer) return;
+        if (err && err.type === 'peer-unavailable') plFail(PL.joined ? 'The host is no longer online.' : 'Room not found. Check the code, or ask the host to open the lobby.');
+        else plClosed();
+      });
+    }).catch(function(){ plFail('Could not load the online library. Check your internet connection.'); });
+  }
+  function plClosed(){
+    if (PL.closing) return;
+    if (!PL.joined){ plFail('Could not connect to the game. Check the code and try again.'); return; }
+    if (PL.retries >= 12){ plFail('Connection lost. The host may have closed the game.'); return; }
+    PL.retries++;
+    $('#plConn').hidden = false;
+    clearTimeout(PL.rt);
+    PL.rt = setTimeout(function(){ plConnect(true); }, 1500);
+  }
+  function plMsg(m){
+    if (!m || typeof m !== 'object') return;
+    switch (m.t){
+      case 'joined':
+        clearTimeout(PL.guard); PL.joined = true; PL.retries = 0; PL.closing = false; PL.name = String(m.name || PL.name);
+        $('#joinBtn').disabled = false; $('#plConn').hidden = true; $('#plWho').textContent = PL.name;
+        plMsg(m.snap); break;
+      case 'reject':
+        PL.closing = true; plClean(); PL.joined = false;
+        plShow('plForm'); $('#joinBtn').disabled = false;
+        plMsgForm(m.reason === 'full' ? 'This game is full (' + MAX_ONLINE + ' players).' : m.reason === 'name' ? 'That name is already taken. Pick another one.' : 'Could not join. Check your name and try again.', true);
+        break;
+      case 'lobby': plWait('You’re in, ' + PL.name + '!', 'Waiting for the host to start. ' + plural(m.n, 'player') + ' joined.'); break;
+      case 'wait': plWait('Get ready…', 'The next photo is coming up.'); break;
+      case 'round': plRound(m); break;
+      case 'level': plLevel(m); break;
+      case 'ack': if (m.rid === PL.rid) plLock(m.pick); break;
+      case 'result': plResult(m); break;
+      case 'over': plOver(m); break;
+      case 'kick': plEnd('The host removed you from the game.'); break;
+      case 'ended': plEnd('The host ended the game. Thanks for playing!'); break;
+    }
+  }
+  function plLock(id){
+    PL.locked = id;
+    document.querySelectorAll('#plOptions .opt').forEach(function(b){ b.disabled = true; b.classList.toggle('picked', b.dataset.pick === id); if (b.dataset.pick !== id) b.classList.add('dim'); });
+    plFeed('Answer locked in. Waiting for the others…', 'good');
+  }
+  function plRound(m){
+    PL.rid = m.rid; PL.locked = null;
+    var opts = m.options || [], n = opts.length;
+    plShow('plRound'); $('#plConn').hidden = true;
+    var o = $('#plOptions');
+    o.style.setProperty('--cols', String(gridCols(n))); o.classList.toggle('compact', n > 8);
+    o.innerHTML = opts.map(function(x, i){
+      return '<button type="button" class="opt c' + (i % 4) + '" data-pick="' + esc(x.id) + '">' + SHAPES[i % 4] + '<span>' + esc(x.name) + '</span></button>';
+    }).join('');
+    $('#plQ').textContent = (m.total ? 'Round ' + m.no + ' of ' + m.total : 'Round ' + m.no) + ' · Who is this?';
+    $('#plPts').textContent = m.pts; $('#plLvl').textContent = 'Level ' + (m.level + 1) + ' of 3';
+    plFeed('Look at the host’s screen, then tap a name.', '');
+    plRing(m.ms, m.dur);
+    if (m.picked) plLock(m.picked);
+  }
+  function plLevel(m){
+    if (m.rid !== PL.rid) return;
+    $('#plPts').textContent = m.pts; $('#plLvl').textContent = 'Level ' + (m.level + 1) + ' of 3';
+    plRing(m.ms, m.dur);
+  }
+  function plResult(m){
+    var txt, kind;
+    if (m.ok){ txt = 'Correct! +' + m.pts + (m.first ? ' · You were first!' : ''); kind = 'good'; }
+    else if (m.answered){ txt = 'Not quite. It was ' + m.correctName + '.'; kind = 'bad'; }
+    else { txt = 'No answer. It was ' + m.correctName + '.'; kind = 'bad'; }
+    txt += ' Rank ' + m.rank + ' of ' + m.n + '.';
+    $('#plScore').hidden = false; $('#plScore').textContent = m.score + ' pts';
+    plStopRing();
+    if (!document.querySelector('#plOptions .opt') || PL.rid !== m.rid){ plWait('Round over', txt); return; }
+    plShow('plRound');
+    document.querySelectorAll('#plOptions .opt').forEach(function(b){
+      b.disabled = true; b.classList.remove('picked', 'dim');
+      if (b.dataset.pick === m.correct) b.classList.add('correct');
+      else if (b.dataset.pick === m.picked) b.classList.add('wrong');
+      else b.classList.add('dim');
+    });
+    plFeed(txt, kind);
+    $('#plQ').textContent = 'Next photo coming up…';
+    if (m.ok && navigator.vibrate){ try { navigator.vibrate(60); } catch(e){} }
+  }
+  function plOver(m){
+    $('#plScore').hidden = false; $('#plScore').textContent = m.score + ' pts';
+    var top = (m.top || []).map(function(t, i){ return (i + 1) + '. ' + t.name + ' (' + t.score + ')'; }).join('  ');
+    plWait('Game over', 'You finished ' + m.rank + ' of ' + m.n + ' with ' + m.score + ' pts (' + m.correct + ' correct).' + (top ? ' Top: ' + top : ''));
+  }
+  $('#plOptions').addEventListener('click', function(e){
+    var b = e.target.closest('.opt');
+    if (!b || PL.locked) return;
+    if (!PL.conn || !PL.conn.open){ plFeed('Reconnecting… try again in a moment.', 'bad'); return; }
+    try { PL.conn.send({ t: 'ans', rid: PL.rid, pick: b.dataset.pick }); } catch(err){ return; }
+    plLock(b.dataset.pick);
+  });
+  function plStart(){
+    var code = normCode($('#joinCode').value), name = $('#joinName').value.replace(/\s+/g, ' ').trim().slice(0, 20);
+    if (code.length < 5){ plMsgForm('Enter the 5-character room code.', true); return; }
+    if (!name){ plMsgForm('Type your name.', true); $('#joinName').focus(); return; }
+    ls.set('gw-name', name);
+    PL.code = code; PL.name = name; PL.pid = getPid(code); PL.retries = 0; PL.closing = false; PL.joined = false;
+    plConnect(false);
+  }
+  $('#plForm').addEventListener('submit', function(e){ e.preventDefault(); plStart(); });
+  $('#plAgain').onclick = function(){ plShow('plForm'); plMsgForm(''); $('#joinBtn').disabled = false; $('#plScore').hidden = true; $('#plWho').textContent = 'Guess Who?'; };
+  function enterPlayer(code, auto){
+    document.body.classList.add('player');
+    G.view = 'player'; showView();
+    $('#join').hidden = false;
+    $('#joinCode').value = code || '';
+    $('#joinName').value = ls.get('gw-name', '');
+    $('#plBack').hidden = PL.fromURL;
+    plShow('plForm'); plMsgForm('');
+    if (auto) plStart();
+  }
+  $('#plBack').onclick = function(){
+    plLeave(); document.body.classList.remove('player'); $('#join').hidden = true;
+    G.view = 'setup'; showView(); renderSetup();
+  };
+  $('#joinEntry').onclick = function(){ enterPlayer('', false); };
+  function initJoinFromURL(){
+    var m = /[?&]join=([A-Za-z0-9]{3,8})/.exec(location.search);
+    if (!m) return;
+    PL.fromURL = true;
+    var code = normCode(m[1]), had = false;
+    try { had = !!sessionStorage.getItem('gw-pid-' + code); } catch(e){}
+    enterPlayer(code, had && !!ls.get('gw-name', ''));
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden || G.view !== 'player' || !PL.joined || PL.closing) return;
+    if (!PL.conn || !PL.conn.open){ PL.retries = 0; plConnect(true); }
   });
 
   /* ---------- boot ---------- */
@@ -1298,6 +1863,7 @@ body.hc .opt{outline:2px solid #fff}
 
   applyDisplay();
   document.body.classList.add('stage');
+  initJoinFromURL();
   loadAll().then(function(list){
     list = list.filter(function(p){ return p && p.name && p.photos && p.photos.length; });
     return normalize(list);
@@ -1308,6 +1874,4 @@ body.hc .opt{outline:2px solid #fff}
   });
 })();
 </script>
-
-</body>
-</html>
+</body></html>
